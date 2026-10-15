@@ -6,7 +6,7 @@ use tokio::sync::mpsc::{
 
 use crate::{
   command::{Command, issue},
-  config::{config::Config, task::CmdConfig},
+  config::{config::Config, task::CmdConfig, tui::ThemeMode},
   console::{
     action::{Action, CopyMove, RunnerTab, ScrollUnit},
     app_layout::AppLayout,
@@ -149,9 +149,9 @@ impl App {
         header: Default::default(),
         hover: None,
       },
+      theme: Theme::configured(&config.tui),
       config,
       keymap,
-      theme: Theme::dark(),
       modal: None,
       receiver,
       screen: TaskScreen::new(pc.task_id, screen, handle, 1),
@@ -319,6 +319,7 @@ impl App {
         geometry: self.task_geometry(),
         sink: self.sink.clone(),
         client_version: None,
+        background: None,
       },
     );
   }
@@ -419,7 +420,17 @@ impl App {
         cmd
       }
       // A console attachment is what makes a project recent.
-      cmd @ TaskScreenCmd::Attach { .. } => {
+      cmd @ TaskScreenCmd::Attach { background, .. } => {
+        if self.config.tui.theme == ThemeMode::Auto
+          && let Some(background) = background
+        {
+          // The latest client to say decides for everyone attached.
+          let theme = Theme::of(background);
+          if theme.dark != self.theme.dark {
+            self.theme = theme;
+            self.dirty = true;
+          }
+        }
         if let Some(runner) = self.config.runner.clone() {
           tokio::task::spawn_blocking(move || {
             crate::runner::recent::touch(&runner)

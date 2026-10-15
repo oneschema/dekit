@@ -4,6 +4,7 @@ use anyhow::{Result, bail};
 use indexmap::IndexMap;
 use serde_yaml::Value;
 
+use crate::config::tui::ThemeMode;
 use crate::console::action::Action;
 use crate::mprocs::{
   event::AppEvent,
@@ -40,6 +41,7 @@ pub struct Config {
   pub scrollback_len: usize,
   pub proc_list_width: usize,
   pub proc_list_title: String,
+  pub theme: ThemeMode,
   pub on_init: Option<Action>,
   pub on_all_finished: Option<Action>,
   pub proc_log: Option<LogConfig>,
@@ -89,6 +91,11 @@ impl Config {
         settings.proc_list_title.clone()
       };
 
+    let theme = match config.get(&Value::from("theme")) {
+      Some(theme) => crate::mprocs::settings::parse_theme(theme)?,
+      None => settings.theme,
+    };
+
     let on_init = if let Some(val) = config.get(&Value::from("on_init")) {
       let event: AppEvent = serde_yaml::from_value(val.raw().clone())?;
       Some(event.to_action())
@@ -123,6 +130,7 @@ impl Config {
       scrollback_len: settings.scrollback_len,
       proc_list_width: settings.proc_list_width,
       proc_list_title,
+      theme,
       on_init,
       on_all_finished,
       proc_log,
@@ -140,6 +148,7 @@ impl Config {
       scrollback_len: settings.scrollback_len,
       proc_list_width: settings.proc_list_width,
       proc_list_title: settings.proc_list_title.clone(),
+      theme: settings.theme,
       on_init: None,
       on_all_finished: settings.on_all_finished.clone(),
       proc_log: settings.proc_log.clone(),

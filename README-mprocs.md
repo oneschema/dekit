@@ -167,6 +167,8 @@ settings in the _global_ config.
   scroll.
 - **scrollback**: _integer_ - Scrollback size. Default: _1000_.
 - **proc_list_width**: _integer_ - Process list window width.
+- **theme**: _"auto"|"dark"|"light"_ - Console colors. _"auto"_ follows the
+  terminal's light or dark background. Default: _"auto"_.
 - **proc_log**: _bool|string|object|null_ - Default logging config for
   processes. Accepts the same shape as per-process **log**.
 - **keymap_procs**: _object_ - Key bindings for process list. See

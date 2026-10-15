@@ -1,3 +1,5 @@
+use crate::config::tui::{ThemeMode, TuiConfig};
+use crate::protocol::caps::Background;
 use crate::term::{
   Grid, Palette, Rgb,
   draw::{Block, BorderType},
@@ -5,8 +7,8 @@ use crate::term::{
   style::Style,
 };
 
-/// The console paints every color itself, so it reads the same on light and
-/// dark terminals.
+/// The console paints every color itself, so it looks the same on any
+/// terminal; `tui.theme` picks the light or the dark palette.
 pub struct Theme {
   pub dark: bool,
   /// For the task screens; its default colors are the blocks' `text` and
@@ -59,6 +61,23 @@ pub struct TaskListTheme {
 }
 
 impl Theme {
+  /// The theme before any client says what its terminal shows: the
+  /// configured one, or dark for `auto`.
+  pub fn configured(config: &TuiConfig) -> Self {
+    match config.theme {
+      ThemeMode::Light => Theme::light(),
+      ThemeMode::Dark | ThemeMode::Auto => Theme::dark(),
+    }
+  }
+
+  /// The theme that suits a terminal's background.
+  pub fn of(background: Background) -> Self {
+    match background {
+      Background::Dark => Theme::dark(),
+      Background::Light => Theme::light(),
+    }
+  }
+
   pub fn dark() -> Self {
     let bg = Rgb(0x16, 0x1b, 0x22);
     let text = Rgb(0xd1, 0xd7, 0xe0);

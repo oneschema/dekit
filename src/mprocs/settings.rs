@@ -5,6 +5,7 @@ use indexmap::IndexMap;
 use serde_yaml::Value;
 
 use crate::config::keymap::KeymapConfig;
+use crate::config::tui::ThemeMode;
 use crate::console::action::Action;
 use crate::console::keymap::KeymapGroup;
 use crate::mprocs::{
@@ -21,6 +22,7 @@ pub struct Settings {
   pub scrollback_len: usize,
   pub proc_list_width: usize,
   pub proc_list_title: String,
+  pub theme: ThemeMode,
   pub on_all_finished: Option<Action>,
   pub proc_log: Option<LogConfig>,
 }
@@ -34,9 +36,17 @@ impl Default for Settings {
       scrollback_len: 1000,
       proc_list_width: 30,
       proc_list_title: "Processes".to_string(),
+      theme: ThemeMode::Auto,
       on_all_finished: None,
       proc_log: None,
     }
+  }
+}
+
+pub(crate) fn parse_theme(val: &Val) -> Result<ThemeMode> {
+  match ThemeMode::parse(val.as_str()?) {
+    Some(mode) => Ok(mode),
+    None => Err(val.error_at("Expected auto, dark, or light")),
   }
 }
 
@@ -153,6 +163,10 @@ impl Settings {
 
     if let Some(proc_list_width) = obj.get(&Value::from("proc_list_width")) {
       self.proc_list_width = proc_list_width.as_usize()?;
+    }
+
+    if let Some(theme) = obj.get(&Value::from("theme")) {
+      self.theme = parse_theme(theme)?;
     }
 
     if let Some(on_all_finished) = obj.get(&Value::from("on_all_finished")) {
