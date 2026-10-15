@@ -1,5 +1,8 @@
 ## Unreleased
 
+- The console follows the terminal's light or dark background;
+  `tui.theme: dark | light` in the user config pins it
+
 ## 0.10.2 - 2026-10-11
 
 - Add TUI header with menu

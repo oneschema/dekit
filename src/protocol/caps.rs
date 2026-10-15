@@ -28,6 +28,18 @@ pub struct TermCaps {
   pub focus_events: bool,
   /// How the terminal measures the text dekit is unsure about.
   pub widths: WidthPolicy,
+  /// Whether the terminal's background is light or dark, when it said
+  /// (OSC 11) or the environment did (`COLORFGBG`). The console's
+  /// `tui.theme: auto` follows it.
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub background: Option<Background>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Background {
+  Dark,
+  Light,
 }
 
 #[derive(
@@ -85,6 +97,7 @@ impl Default for TermCaps {
       sixel: false,
       focus_events: false,
       widths: WidthPolicy::default(),
+      background: None,
     }
   }
 }
@@ -106,6 +119,7 @@ impl TermCaps {
       sixel: false,
       focus_events: true,
       widths: WidthPolicy::agreed(),
+      background: None,
     }
   }
 }
@@ -125,6 +139,14 @@ mod tests {
     assert_eq!(partial.colors, ColorDepth::Ansi256);
     assert!(partial.kitty_graphics.is_none());
     assert_eq!(partial.widths, WidthPolicy::default());
+    assert_eq!(partial.background, None);
+    let light = TermCaps {
+      background: Some(Background::Light),
+      ..TermCaps::default()
+    };
+    let json = serde_json::to_string(&light).unwrap();
+    assert!(json.contains(r#""background":"light""#), "{json}");
+    assert_eq!(serde_json::from_str::<TermCaps>(&json).unwrap(), light);
     // A width an older client did not measure is unknown, not agreed.
     let partial: TermCaps =
       serde_json::from_str(r#"{"widths":{"vs16_wide":true}}"#).unwrap();

@@ -36,6 +36,10 @@
       "type": "string",
       "description": "Title shown above the process list."
     },
+    "theme": {
+      "enum": ["auto", "dark", "light"],
+      "description": "Console colors. `auto` follows the terminal's background. Default: auto."
+    },
     "proc_log": {
       "$ref": "#/definitions/logConfig",
       "description": "Default logging config for processes. Per-process `log` values merge with this."
